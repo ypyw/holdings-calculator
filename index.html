@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>YPYW — Property Investment Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:        #0D1B2E;
+    --navy-mid:    #132035;
+    --navy-light:  #1A2D45;
+    --navy-border: #243D5A;
+    --blue:        #1E6FBF;
+    --blue-light:  #2E8DE0;
+    --blue-pale:   #D0E8FF;
+    --white:       #FFFFFF;
+    --success:     #27AE60;
+    --danger:      #E84040;
+    --radius:      6px;
+    --radius-lg:   10px;
+  }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .header {
+    background: var(--navy-mid);
+    border-bottom: 2px solid var(--blue);
+  }
+  .header-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 4px; }
+  .header-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--blue-light); }
+  .header-title { font-family: 'Merriweather', serif; font-size: 24px; font-weight: 700; color: var(--white); }
+  .header-right { text-align: right; }
+  .header-tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--navy); background: var(--blue-light); padding: 4px 12px; border-radius: 20px; margin-bottom: 4px; }
+  .header-date { font-size: 11px; color: var(--white); }
+
+  .container { max-width: 980px; margin: 0 auto; padding: 3rem 2rem; }
+
+  .section { margin-bottom: 2.5rem; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .section-num { width: 26px; height: 26px; background: var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--white); flex-shrink: 0; }
+  .section-title { font-size: 14px; font-weight: 600; letter-spacing: 0.04em; color: var(--white); text-transform: uppercase; }
+  .section-desc { font-size: 12px; color: var(--white); margin-bottom: 1.25rem; padding-left: 38px; line-height: 1.6; }
+
+  .divider { border: none; border-top: 1px solid var(--navy-border); margin: 2rem 0; }
+
+  .toggle-group { display: flex; border: 1px solid var(--navy-border); border-radius: var(--radius); overflow: hidden; }
+  .toggle-btn { flex: 1; padding: 11px 16px; background: transparent; color: var(--white); border: none; border-right: 1px solid var(--navy-border); cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+  .toggle-btn:last-child { border-right: none; }
+  .toggle-btn.active { background: var(--blue); color: var(--white); font-weight: 600; }
+  .toggle-btn:not(.active):hover { background: var(--navy-light); }
+
+  .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .input-block { display: flex; flex-direction: column; gap: 6px; }
+  .input-block label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); }
+  .input-wrap { position: relative; }
+  .input-wrap input {
+    width: 100%;
+    background: var(--navy-light);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius);
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 17px; font-weight: 600;
+    padding: 10px 38px 10px 14px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    -moz-appearance: textfield;
+  }
+  .input-wrap input::-webkit-outer-spin-button,
+  .input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .input-wrap input:focus { border-color: var(--blue-light); background: #1E3555; }
+  .input-suffix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 700; color: var(--blue-light); pointer-events: none; }
+  .input-hint { font-size: 11px; color: var(--white); line-height: 1.4; }
+
+  .notice { padding: 10px 14px; border-radius: var(--radius); font-size: 12px; line-height: 1.5; margin-bottom: 1.25rem; font-weight: 500; }
+  .notice-warn { background: rgba(30,111,191,0.12); border: 1px solid rgba(30,111,191,0.35); color: var(--white); }
+  .notice-ok { background: rgba(39,174,96,0.10); border: 1px solid rgba(39,174,96,0.3); color: var(--white); }
+
+  .btn-calc { width: 100%; padding: 15px; background: var(--blue); color: var(--white); border: none; border-radius: var(--radius); font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; margin: 2rem 0; transition: background 0.2s, transform 0.1s; }
+  .btn-calc:hover { background: var(--blue-light); }
+  .btn-calc:active { transform: scale(0.995); }
+
+  #results { display: none; }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .mcard { background: var(--navy-light); border: 1px solid var(--navy-border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; }
+  .mcard.hl { border-color: var(--blue); background: rgba(30,111,191,0.10); }
+  .mcard-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--white); margin-bottom: 5px; line-height: 1.4; }
+  .mcard-value { font-family: 'Merriweather', serif; font-size: 20px; font-weight: 700; color: var(--white); }
+  .mcard-sub { font-size: 11px; color: var(--white); margin-top: 3px; }
+
+  .regime-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.25rem; }
+  .rcard { background: var(--navy-light); border: 1px solid var(--navy-border); border-radius: var(--radius-lg); padding: 1.25rem; }
+  .rcard.new { border-color: var(--blue); border-width: 2px; }
+  .rtag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; }
+  .rtag.old { background: rgba(255,255,255,0.1); color: var(--white); }
+  .rtag.new { background: rgba(30,111,191,0.2); color: var(--blue-light); }
+  .r-amount { font-family: 'Merriweather', serif; font-size: 30px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
+  .r-period { font-size: 12px; color: var(--white); margin-bottom: 12px; font-weight: 500; }
+  .r-lines { font-size: 12px; color: var(--white); line-height: 2; }
+  .r-lines span { color: var(--white); font-weight: 600; }
+
+  .diff-banner { background: rgba(232,64,64,0.08); border: 1px solid rgba(232,64,64,0.3); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .diff-lbl { flex: 1; }
+  .diff-lbl strong { display: block; font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 3px; }
+  .diff-lbl span { font-size: 12px; color: var(--white); line-height: 1.5; }
+  .diff-nums { text-align: right; white-space: nowrap; }
+  .diff-big { font-family: 'Merriweather', serif; font-size: 28px; font-weight: 700; color: var(--danger); }
+  .diff-small { font-size: 12px; color: var(--white); margin-top: 3px; }
+
+  .res-heading { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue-light); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .res-heading::after { content: ''; flex: 1; height: 1px; background: var(--navy-border); }
+
+  .footer { border-top: 1px solid var(--navy-border); padding: 1.5rem 2rem; text-align: center; font-size: 11px; color: var(--white); letter-spacing: 0.05em; font-weight: 500; }
+
+  @media (max-width: 640px) {
+    .header-inner { flex-direction: column; align-items: flex-start; }
+    .container { padding: 2rem 1.25rem; }
+    .regime-grid { grid-template-columns: 1fr; }
+    .diff-banner { flex-direction: column; }
+    .diff-nums { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="header-eyebrow">Your Property Your Wealth</div>
+      <div class="header-title">Property Investment Calculator</div>
+    </div>
+    <div class="header-right">
+      <div class="header-tag">Internal Tool</div>
+      <div class="header-date" id="hdate"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 1. State -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div class="section-title">State of purchase</div>
+    </div>
+    <div class="toggle-group">
+      <button class="toggle-btn active" onclick="setState('OTHER',this)">All other states — 5% closing costs</button>
+      <button class="toggle-btn" onclick="setState('VIC',this)">Victoria — 6% closing costs</button>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- 2. Purchase & Deposit -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div class="section-title">Purchase & deposit</div>
+    </div>
+    <div class="section-desc">Enter the purchase price and deposit percentage. LMI is applied automatically when LVR exceeds 80%.</div>
+    <div class="input-grid">
+      <div class="input-block">
+        <label>Purchase price</label>
+        <div class="input-wrap">
+          <input type="number" id="price" value="750000" step="10000" />
+          <span class="input-suffix">$</span>
+        </div>
+      </div>
+      <div class="input-block">
+        <label>Deposit</label>
+        <div class="input-wrap">
+          <input type="number" id="depositPct" value="12" step="1" min="5" max="50" />
+          <span class="input-suffix">%</span>
+        </div>
+        <span class="input-hint">LMI applies automatically when LVR exceeds 80%</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- 3. Rental yield -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div class="section-title">Rental yield</div>
+    </div>
+    <div class="section-desc">The yield used to estimate annual rent collected. Defaults to 4% — adjust if the expected yield is different.</div>
+    <div class="input-grid">
+      <div class="input-block">
+        <label>Rental yield</label>
+        <div class="input-wrap">
+          <input type="number" id="yieldPct" value="4" step="0.1" />
+          <span class="input-suffix">%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- 4. Interest rate -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div class="section-title">Interest rate & tax</div>
+    </div>
+    <div class="section-desc">The net holding cost is calculated automatically as the interest rate minus the rental yield. For example at 7% interest and 4% yield, the net holding cost is 3%. Adjust the interest rate to see how costs change.</div>
+    <div class="input-grid">
+      <div class="input-block">
+        <label>Interest rate</label>
+        <div class="input-wrap">
+          <input type="number" id="interestRate" value="7" step="0.05" />
+          <span class="input-suffix">%</span>
+        </div>
+        <span class="input-hint">Net holding cost = interest rate minus rental yield</span>
+      </div>
+      <div class="input-block">
+        <label>Marginal tax rate — old regime</label>
+        <div class="input-wrap">
+          <input type="number" id="taxRate" value="35" step="1" />
+          <span class="input-suffix">%</span>
+        </div>
+        <span class="input-hint">Used to calculate the old regime tax refund</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-calc" onclick="calc()">Calculate</button>
+
+  <!-- Results -->
+  <div id="results">
+
+    <div id="lmi-notice"></div>
+
+    <div class="res-heading">A — Setup costs</div>
+    <p style="font-size:12px;color:var(--white);margin:-4px 0 14px;line-height:1.5;">All funds the client needs available on settlement day.</p>
+    <div class="metrics-grid" id="setup-cards"></div>
+
+    <hr class="divider" />
+
+    <div class="res-heading">B — Rental income</div>
+    <p style="font-size:12px;color:var(--white);margin:-4px 0 14px;line-height:1.5;">Estimated rent collected at the nominated yield.</p>
+    <div class="metrics-grid" id="rent-cards"></div>
+
+    <hr class="divider" />
+
+    <div class="res-heading">C — Old regime vs new regime</div>
+    <p style="font-size:12px;color:var(--white);margin:-4px 0 14px;line-height:1.5;">Under the old rules, investors offset their rental loss against salary and received a tax refund — reducing the real weekly cost. Under the new rules (properties purchased after 12 May 2026), that offset is removed. The full shortfall is paid every week.</p>
+    <div class="regime-grid" id="regime-cards"></div>
+    <div class="diff-banner" id="diff-banner"></div>
+
+  </div>
+
+</div>
+
+<div class="footer">Your Property Your Wealth &nbsp;·&nbsp; For internal use and client discussion only &nbsp;·&nbsp; All figures are estimates only</div>
+
+<script>
+  let state = 'OTHER';
+
+  document.getElementById('hdate').textContent = new Date().toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' });
+
+  function setState(s, btn) {
+    state = s;
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function fmt(n) { return '$' + Math.round(Math.abs(n)).toLocaleString('en-AU'); }
+
+  function calc() {
+    const price      = parseFloat(document.getElementById('price').value)        || 0;
+    const depPct     = parseFloat(document.getElementById('depositPct').value)   || 0;
+    const yieldPct   = parseFloat(document.getElementById('yieldPct').value)     || 4;
+    const intRate    = parseFloat(document.getElementById('interestRate').value)  || 7;
+    const taxRate    = parseFloat(document.getElementById('taxRate').value) / 100 || 0.35;
+
+    const closingPct = state === 'VIC' ? 0.06 : 0.05;
+    const closing    = price * closingPct;
+    const deposit    = price * (depPct / 100);
+    const loan       = price - deposit;
+    const lvr        = (loan / price) * 100;
+    const lmiApplies = lvr > 80;
+    const lmi        = lmiApplies ? price * 0.02 : 0;
+    const ypywFee    = 26000;
+    const totalIn    = deposit + closing + ypywFee + lmi;
+
+    const rentAnnual = price * (yieldPct / 100);
+    const rentWeekly = rentAnnual / 52;
+
+    // Net holding cost = interest on actual loan minus rent collected
+    const interestAnnual = loan * (intRate / 100);
+    const shortfallNew   = interestAnnual - rentAnnual;
+
+    // Old regime — same interest calculation, tax refund applied
+    const shortfallOld   = interestAnnual - rentAnnual;
+    const refundOld      = shortfallOld > 0 ? shortfallOld * taxRate : 0;
+    const oopOld         = shortfallOld - refundOld;
+    const oopNew         = shortfallNew;
+
+    const oopOldWk  = oopOld / 52;
+    const oopOldMo  = oopOld / 12;
+    const oopNewWk  = oopNew / 52;
+    const oopNewMo  = oopNew / 12;
+    const diffWk    = oopNewWk - oopOldWk;
+    const diffMo    = oopNewMo - oopOldMo;
+
+    // Net holding cost % for display
+    const holdingPct = ((shortfallNew / price) * 100).toFixed(2);
+
+    document.getElementById('lmi-notice').innerHTML = lmiApplies
+      ? `<div class="notice notice-warn"><strong>LMI applies</strong> — LVR is ${lvr.toFixed(1)}%, above 80%. LMI estimated at 2% of purchase price (${fmt(lmi)}).</div>`
+      : `<div class="notice notice-ok"><strong>No LMI</strong> — LVR is ${lvr.toFixed(1)}%, at or below 80%.</div>`;
+
+    document.getElementById('setup-cards').innerHTML = `
+      <div class="mcard"><div class="mcard-label">Deposit (${depPct}%)</div><div class="mcard-value">${fmt(deposit)}</div><div class="mcard-sub">LVR: ${lvr.toFixed(1)}%</div></div>
+      <div class="mcard"><div class="mcard-label">Loan amount</div><div class="mcard-value">${fmt(loan)}</div><div class="mcard-sub">At ${intRate}% interest</div></div>
+      <div class="mcard"><div class="mcard-label">Closing costs (${state==='VIC'?'6':'5'}%)</div><div class="mcard-value">${fmt(closing)}</div><div class="mcard-sub">Stamp duty &amp; transfer</div></div>
+      <div class="mcard"><div class="mcard-label">YPYW fee</div><div class="mcard-value">${fmt(ypywFee)}</div><div class="mcard-sub">Buyers agency</div></div>
+      ${lmiApplies ? `<div class="mcard"><div class="mcard-label">LMI</div><div class="mcard-value">${fmt(lmi)}</div><div class="mcard-sub">LVR above 80%</div></div>` : ''}
+      <div class="mcard hl"><div class="mcard-label">Total funds required</div><div class="mcard-value">${fmt(totalIn)}</div><div class="mcard-sub">All costs combined</div></div>
+    `;
+
+    document.getElementById('rent-cards').innerHTML = `
+      <div class="mcard"><div class="mcard-label">Annual rent (${yieldPct}% yield)</div><div class="mcard-value">${fmt(rentAnnual)}</div><div class="mcard-sub">${fmt(rentWeekly)} per week</div></div>
+      <div class="mcard"><div class="mcard-label">Annual interest on loan</div><div class="mcard-value">${fmt(interestAnnual)}</div><div class="mcard-sub">${intRate}% on ${fmt(loan)}</div></div>
+      <div class="mcard"><div class="mcard-label">Net holding cost</div><div class="mcard-value">${holdingPct}%</div><div class="mcard-sub">Interest minus rent</div></div>
+    `;
+
+    document.getElementById('regime-cards').innerHTML = `
+      <div class="rcard">
+        <span class="rtag old">Pre 12 May 2026</span>
+        <div class="r-amount">${fmt(oopOldWk)}</div>
+        <div class="r-period">per week out of pocket</div>
+        <div class="r-lines">
+          Annual interest: <span>${fmt(interestAnnual)}</span><br/>
+          Annual rent collected: <span>− ${fmt(rentAnnual)}</span><br/>
+          Annual shortfall: <span>${fmt(shortfallOld)}</span><br/>
+          Tax refund (${Math.round(taxRate*100)}%): <span>− ${fmt(refundOld)}</span><br/>
+          True annual cost: <span>${fmt(oopOld)}</span><br/>
+          Monthly: <span>${fmt(oopOldMo)}</span>
+        </div>
+      </div>
+      <div class="rcard new">
+        <span class="rtag new">Post 12 May 2026</span>
+        <div class="r-amount">${fmt(oopNewWk)}</div>
+        <div class="r-period">per week out of pocket</div>
+        <div class="r-lines">
+          Annual interest: <span>${fmt(interestAnnual)}</span><br/>
+          Annual rent collected: <span>− ${fmt(rentAnnual)}</span><br/>
+          Annual shortfall: <span>${fmt(shortfallNew)}</span><br/>
+          Tax refund: <span>None — no salary offset</span><br/>
+          True annual cost: <span>${fmt(oopNew)}</span><br/>
+          Monthly: <span>${fmt(oopNewMo)}</span>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('diff-banner').innerHTML = `
+      <div class="diff-lbl">
+        <strong>Additional cost under new rules</strong>
+        <span>The client pays this much more per week compared to what they would have paid under the old negative gearing rules.</span>
+      </div>
+      <div class="diff-nums">
+        <div class="diff-big">+ ${fmt(diffWk)} / wk</div>
+        <div class="diff-small">+ ${fmt(diffMo)} per month &nbsp;·&nbsp; + ${fmt(diffMo*12)} per year</div>
+      </div>
+    `;
+
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+</script>
+</body>
+</html>
